@@ -1,3 +1,4 @@
+use std::cmp;
 
 #[derive(Debug, Default)]
 struct Turn {
@@ -59,27 +60,30 @@ fn parse_line(line: &str) -> Game {
 
 }
 
-fn calculate_result(game: Game, check: &Turn) -> i32 {
+fn calculate_result(game: Game) -> i32 {
+    let mut green = 0; 
+    let mut red = 0;
+    let mut blue = 0;
     for turn in game.turns {
-        if turn.green > check.green || turn.red > check.red || turn.blue > check.blue {
-            return 0
-        }
+        green = cmp::max(green, turn.green);
+        red = cmp::max(red, turn.red);
+        blue = cmp::max(blue, turn.blue);
     }
-    game.id
+    green * red * blue
 }
 
-fn calculate(input: &str, check: Turn) -> i32 {
+fn calculate(input: &str) -> i32 {
     get_lines(input)
         .into_iter()
         .map(parse_line)
-        .map(|turn| calculate_result(turn, &check))
+        .map(calculate_result)
         .sum()
 }
 
+
 pub fn run() {
     let input_str = include_str!("../input.txt");
-    let check = Turn{red: 12, green: 13, blue: 14};
-    let result = calculate(input_str, check);
+    let result = calculate(input_str);
     println!("Result for day02b: {}", result);
 }
 
@@ -96,9 +100,7 @@ Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 ";
-        let check = Turn{red: 12, green: 13, blue: 14};
-        let result = calculate(sample_input, check);
-        assert_eq!(result, 8);
+        let result = calculate(sample_input);
+        assert_eq!(result, 2286);
     }
 }
-
