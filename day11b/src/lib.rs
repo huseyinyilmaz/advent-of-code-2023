@@ -1,11 +1,8 @@
-use std::collections::HashSet;
-
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 enum Tile {
     Empty,
     Galaxy,
 }
-
 
 impl TryFrom<char> for Tile {
 
@@ -38,11 +35,12 @@ impl Input {
         self.grid[location.y][location.x]
     }
 
-    fn combinations<T: Copy>(&self, vec: &Vec<T>) -> Vec<(T, T)> {
+    fn get_galaxy_matches(&self) -> Vec<(Location, Location)> {
+        let galaxies = self.find_galaxies();
         let mut result = Vec::new();
-        for a in 0..vec.len() {
-            for b in a + 1..vec.len() {
-                result.push((vec[a].clone(), vec[b].clone()));
+        for a in 0..galaxies.len() {
+            for b in a + 1..galaxies.len() {
+                result.push((galaxies[a].clone(), galaxies[b].clone()));
             }
         }
         return result;
@@ -125,13 +123,12 @@ impl TryFrom<&str> for Input {
 
 fn calculate(input: &mut Input, expansion_factor: u128) -> u128 {
     input.print();
-    let galaxies = input.find_galaxies();
     let empty_rows = input.get_empty_rows();
     let empty_cols = input.get_empty_columns();
-    let combinations = input.combinations(&galaxies);
+    let galaxy_tuples = input.get_galaxy_matches();
     // dbg!(&empty_rows, &empty_cols);
     let mut result: u128 = 0;
-    for (a, b) in combinations {
+    for (a, b) in galaxy_tuples {
         let lower_x = std::cmp::min(a.x, b.x);
         let upper_x = std::cmp::max(a.x, b.x);
         let lower_y = std::cmp::min(a.y, b.y);
