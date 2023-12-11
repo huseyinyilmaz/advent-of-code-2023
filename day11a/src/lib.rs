@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 enum Tile {
     Empty,
