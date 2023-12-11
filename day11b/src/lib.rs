@@ -6,12 +6,16 @@ enum Tile {
     Galaxy,
 }
 
-impl From<char> for Tile {
-    fn from(input: char) -> Self {
-        match input {
-            '#' => Tile::Galaxy,
-            '.' => Tile::Empty,
-            _ => panic!("Cannot parse all tiles"),
+
+impl TryFrom<char> for Tile {
+
+    type Error = &'static str;
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            '#' => Ok(Tile::Galaxy),
+            '.' => Ok(Tile::Empty),
+            _ => Err("Cannot Parse Tile"),
         }
     }
 }
@@ -105,14 +109,17 @@ impl Input {
     }
 }
 
-impl From<&str> for Input {
-    fn from(input_str: &str) -> Self {
+impl TryFrom<&str> for Input {
+
+    type Error = &'static str;
+
+    fn try_from(input_str: &str) -> Result<Self, Self::Error> {
         let grid = input_str
             .lines()
             .filter(|l| !l.is_empty())
-            .map(|l| l.chars().map(Tile::from).collect())
-            .collect();
-        Input { grid }
+            .map(|l| l.chars().map(Tile::try_from).collect())
+            .collect::<Result<Grid,Self::Error>>()?;
+        Ok(Input { grid })
     }
 }
 
@@ -150,8 +157,7 @@ fn calculate(input: &mut Input, expansion_factor: u128) -> u128 {
 
 pub fn run() {
     let input_str = include_str!("../input.txt");
-
-    let mut input = Input::from(input_str);
+    let mut input = Input::try_from(input_str).unwrap();
     let result = calculate(&mut input, 1000000);
     println!("Result for day11a: {}", result);
 }
@@ -174,7 +180,7 @@ mod tests {
 .......#..
 #...#.....
 ";
-        let result = calculate(&mut Input::from(sample_input), 10);
+        let result = calculate(&mut Input::try_from(sample_input).unwrap(), 10);
         assert_eq!(result, 1030);
     }
 
@@ -192,7 +198,7 @@ mod tests {
 .......#..
 #...#.....
 ";
-        let result = calculate(&mut Input::from(sample_input), 100);
+        let result = calculate(&mut Input::try_from(sample_input).unwrap(), 100);
         assert_eq!(result, 8410);
     }
 }
