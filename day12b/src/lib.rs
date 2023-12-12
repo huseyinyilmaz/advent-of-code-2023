@@ -38,7 +38,15 @@ impl TryFrom<&str> for Line {
             .split(',')
             .map(|n| n.parse::<usize>().map_err(|_err| "Cannot parse value"))
             .collect::<Result<Vec<usize>, Self::Error>>()?;
-        Ok(Line { statuses, groups })
+        let mut unfolded_statuses= Vec::new();
+        let mut unfolded_groups = Vec::new();
+
+        for _i in 0..5 {
+            unfolded_statuses.extend(&statuses);
+            unfolded_statuses.push(Status::Unknown);
+            unfolded_groups.extend(&groups);
+        }
+        Ok(Line { statuses: unfolded_statuses, groups: unfolded_groups })
     }
 }
 
@@ -132,7 +140,7 @@ fn is_match(statuses: &[Status], groups: &[usize]) -> bool {
     if current_count > 0 {
         counts.push(current_count);
     }
-    groups.len() == (&counts).len() && groups.iter().zip(counts).all(|(a, b)| *a == b)
+    groups.len() == (&counts).len() && groups.iter().zip(counts).all(|(a,b)|*a==b)
 }
 
 fn match_count(statuses: &[Status], groups: &[usize]) -> u128 {
@@ -140,7 +148,9 @@ fn match_count(statuses: &[Status], groups: &[usize]) -> u128 {
         .iter()
         .map(|s| if *s == Status::Unknown { 1 } else { 0 })
         .sum();
+    println!("getting unknown combs");
     let unknown_combs = get_combs(unknown_count);
+    println!("getting unknown combs...done");
     // let combs: Vec<Vec<Status>> = unknown_combs
     //     .into_iter()
     //     .map(|u| merge_comb(statuses, u))
@@ -151,7 +161,7 @@ fn match_count(statuses: &[Status], groups: &[usize]) -> u128 {
     //     .into_iter()
     //     .map(|s| if is_match(&s, groups) { 1 } else { 0 })
     //     .sum()
-    //
+
     unknown_combs
         .into_iter()
         .map(|u| merge_comb(statuses, u))
@@ -190,7 +200,7 @@ mod tests {
 ?###???????? 3,2,1
 ";
         let result = calculate(&mut Input::try_from(sample_input).unwrap());
-        assert_eq!(result, 21);
+        assert_eq!(result, 525152);
     }
 
     #[test]
@@ -208,7 +218,7 @@ mod tests {
 .??..??...?##. 1,1,3
 ";
         let result = calculate(&mut Input::try_from(sample_input).unwrap());
-        assert_eq!(result, 4);
+        assert_eq!(result, 16384);
     }
 
     #[test]
@@ -226,7 +236,7 @@ mod tests {
 ????.#...#... 4,1,1
 ";
         let result = calculate(&mut Input::try_from(sample_input).unwrap());
-        assert_eq!(result, 1);
+        assert_eq!(result, 16);
     }
 
     #[test]
@@ -235,7 +245,7 @@ mod tests {
 ????.######..#####. 1,6,5
 ";
         let result = calculate(&mut Input::try_from(sample_input).unwrap());
-        assert_eq!(result, 4);
+        assert_eq!(result, 2500);
     }
 
     #[test]
@@ -244,6 +254,7 @@ mod tests {
 ?###???????? 3,2,1
 ";
         let result = calculate(&mut Input::try_from(sample_input).unwrap());
-        assert_eq!(result, 10);
+        assert_eq!(result, 506250);
     }
+
 }
