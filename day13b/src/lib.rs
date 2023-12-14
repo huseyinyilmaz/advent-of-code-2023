@@ -1,5 +1,7 @@
 // use std::collections::HashMap;
 
+use std::ops::Not;
+
 type ReturnType = u128;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
@@ -16,6 +18,17 @@ impl TryFrom<char> for Tile {
             '#' => Ok(Tile::Stone),
             '.' => Ok(Tile::Ash),
             _ => Err("Cannot Parse Tile"),
+        }
+    }
+}
+
+impl Not for Tile {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Self::Ash => Self::Stone,
+            Self::Stone => Self::Ash,
         }
     }
 }
@@ -90,7 +103,6 @@ fn is_row_equal(pattern: &Pattern, lower: i32, upper: i32) -> bool {
 }
 
 fn is_row_mirrow(pattern: &Pattern, lower: i32, upper: i32) -> bool {
-    println!("is mirror: {} == {}", lower, upper);
     let mut lower_limit = lower;
     let mut upper_limit = upper;
     while lower_limit >= 0 && upper_limit < pattern.len() as i32 {
@@ -127,20 +139,35 @@ fn is_col_mirrow(pattern: &Pattern, lower: i32, upper: i32) -> bool {
     true
 }
 
-fn get_pattern_score(pattern: &Pattern) -> Option<ReturnType> {
+fn get_pattern_score(pattern: &Pattern, ignore: Option<ReturnType>) -> Option<ReturnType> {
     for x in 0..pattern[0].len() - 1 {
-        // dbg!(is_col_mirrow(&pattern, x as i32, (x + 1) as i32));
         if is_col_mirrow(&pattern, x as i32, (x + 1) as i32) {
             println!("column mirror found! {},{}", x, x + 1);
             println!("{}", format_pattern(&pattern));
-            return Some(((x + 1) * 1) as ReturnType);
+            let result = ((x + 1) * 1) as ReturnType;
+            match ignore {
+                None => return Some(result),
+                Some(other_result) => {
+                    if other_result != result {
+                        return Some(result);
+                    }
+                }
+            }
         }
     }
     for y in 0..(pattern.len() - 1) {
         if is_row_mirrow(&pattern, y as i32, (y + 1) as i32) {
             println!("column mirror found! {},{}", y, y + 1);
             println!("{}", format_pattern(&pattern));
-            return Some(((y + 1) * 100) as ReturnType);
+            let result = ((y + 1) * 100) as ReturnType;
+            match ignore {
+                None => return Some(result),
+                Some(other_result) => {
+                    if other_result != result {
+                        return Some(result);
+                    }
+                }
+            }
         }
     }
     None
@@ -149,10 +176,26 @@ fn get_pattern_score(pattern: &Pattern) -> Option<ReturnType> {
 fn calculate(input: &mut Input) -> ReturnType {
     // println!("{}", input.to_string());
     let mut result: ReturnType = 0;
-    for pattern in &input.patterns {
-        match get_pattern_score(&pattern) {
-            Some(score) => result += score,
-            None => panic!("Cannot find pattern"),
+    'pattern_loop: for pattern in &input.patterns {
+        println!("Original Pattern Score");
+        let original_score: ReturnType =
+            get_pattern_score(&pattern, None).expect("Could not find Mirror");
+
+        println!("Test Pattern Scores");
+        let mut test_pattern: Pattern = pattern.clone();
+        for y in 0..pattern.len() {
+            for x in 0..pattern[y].len() {
+                // flip a single tile to test
+                test_pattern[y][x] = !test_pattern[y][x];
+                if let Some(new_score) = get_pattern_score(&test_pattern, Some(original_score)) {
+                    if new_score != original_score {
+                        result += new_score;
+                        continue 'pattern_loop;
+                    }
+                }
+                // return test_pattern to its original state
+                test_pattern[y][x] = !test_pattern[y][x];
+            }
         }
     }
     result
@@ -169,9 +212,9 @@ pub fn run() {
 mod tests {
     use super::*;
 
-        #[test]
-        fn it_works() {
-            let sample_input = "
+    #[test]
+    fn it_works() {
+        let sample_input = "
 #.##..##.
 ..#.##.#.
 ##......#
@@ -188,7 +231,13 @@ mod tests {
 ..##..###
 #....#..#
 ";
-            let result = calculate(&mut Input::try_from(sample_input).unwrap());
-            assert_eq!(result, 405);
-        }
+        let result = calculate(&mut Input::try_from(sample_input).unwrap());
+        assert_eq!(result, 400);
+    }
 }
+
+
+
+
+
+
