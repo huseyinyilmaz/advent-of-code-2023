@@ -177,9 +177,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let sample_input = "
-rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
-";
+        let sample_input = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7";
         let result = calculate(&mut Input::try_from(sample_input).unwrap());
         assert_eq!(result, 145);
     }
