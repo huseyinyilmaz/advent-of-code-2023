@@ -49,8 +49,8 @@ impl Input {
         ]
         .into_iter()
         .filter(|l| self.is_inbound(l))
-        // .filter(|l| paths.len() < 2 || *l != paths[paths.len()-2])
-        .filter(|l| !paths.contains(l))
+        .filter(|l| paths.len() < 2 || *l != paths[paths.len()-2])
+        // .filter(|l| !paths.contains(l))
         .collect();
 
         if routes.len() > 2 {
